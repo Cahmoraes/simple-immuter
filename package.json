@@ -1,6 +1,12 @@
 {
-  "name": "simple-immuter-npm",
+  "name": "simple-immuter",
   "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT"
+  "main": "./dist/index.js",
+  "license": "MIT",
+  "keywords": [
+    "brasil",
+    "programação funcional",
+    "imutabilidade"
+  ],
+  "description": "Pacote para trabalhar com imutabilidade e clonagem profunda de estruturas de dados"
 }
