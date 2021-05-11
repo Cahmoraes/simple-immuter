@@ -1,7 +1,9 @@
 {
   "name": "simple-immuter",
-  "version": "1.0.4",
+  "version": "1.0.51",
   "main": "./dist/index.js",
+  "repository": "https://github.com/Cahmoraes/simple-immuter.git",
+  "author": "Cahmoraes <ike.moraes93@gmail.com>",
   "license": "MIT",
   "keywords": [
     "brasil",
