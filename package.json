@@ -1,14 +1,38 @@
 {
   "name": "simple-immuter",
-  "version": "1.0.51",
+  "version": "1.2.0",
   "main": "./dist/index.js",
   "repository": "https://github.com/Cahmoraes/simple-immuter.git",
   "author": "Cahmoraes <ike.moraes93@gmail.com>",
-  "license": "MIT",
   "keywords": [
     "brasil",
     "programação funcional",
     "imutabilidade"
   ],
-  "description": "Pacote para trabalhar com imutabilidade e clonagem profunda de estruturas de dados"
+  "license": "MIT",
+  "description": "Pacote para trabalhar com imutabilidade e clonagem profunda de estruturas de dados",
+  "scripts": {
+    "test": "npx jest",
+    "test:watch": "npx jest --watchAll",
+    "test:cov": "npx jest --coverage",
+    "build": "tsup",
+    "dev": "ts-node-dev --respawn --transpile-only --ignore-watch ./node_modes ./app/index.ts"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.19.1",
+    "@typescript-eslint/eslint-plugin": "^5.36.1",
+    "@typescript-eslint/parser": "^5.36.1",
+    "babel-jest": "^29.0.3",
+    "eslint": "^8.23.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "jest": "^29.0.3",
+    "prettier": "^2.7.1",
+    "ts-jest": "^29.0.2",
+    "ts-node-dev": "^2.0.0",
+    "tsup": "^6.2.3",
+    "typescript": "^4.8.2",
+    "@babel/core": "^7.19.1",
+    "@babel/preset-typescript": "^7.18.6"
+  }
 }
