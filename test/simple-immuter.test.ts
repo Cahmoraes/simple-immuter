@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals'
-import si from '../src'
+import { si } from '../src/index'
 
 describe('Simple Immuter Test Suite', () => {
   describe('Test suit about baseState', () => {
