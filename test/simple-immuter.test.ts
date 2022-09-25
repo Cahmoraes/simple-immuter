@@ -132,6 +132,30 @@ describe('Simple Immuter Test Suite', () => {
       const result = si.produce(set)
       expect(result).toBeInstanceOf(Set)
     })
+
+    it('Should return a new Object', () => {
+      const baseState = {
+        name: 'caique',
+        address: {
+          street: 'Rua X',
+          number: 6,
+        },
+        phone: {
+          fixo: ['0000-0000', '1111-1111'],
+          mobile: ['9999-9999', 99998888],
+        },
+        hobbies: new Map([
+          ['video game', ['crash', 'carros', new Map([['map', 'test']])]],
+        ]),
+        brothers: new Set(['caique', 'thomas', 'isabella', 'igor']),
+        greeting() {
+          return this.name
+        },
+      }
+
+      const clone = si.produce(baseState)
+      expect(clone).toStrictEqual(baseState)
+    })
   })
 
   describe('Test suit about draftState', () => {
@@ -193,7 +217,7 @@ describe('Simple Immuter Test Suite', () => {
     })
   })
 
-  describe('Test suit when producePromise', () => {
+  describe('Test suit about producePromise', () => {
     it('should return immutable Promise', async () => {
       const promise = Promise.resolve({ name: 'caique' })
       const result = si.produce(promise)
@@ -224,6 +248,40 @@ describe('Simple Immuter Test Suite', () => {
       expect(result).toBeInstanceOf(Promise)
 
       await expect(result).resolves.toThrow()
+    })
+  })
+
+  describe('Test suite about class and prototypes', () => {
+    it('should to hold the prototype inherit', () => {
+      class User {
+        public name: string
+        constructor(name: string) {
+          this.name = name
+        }
+
+        greeting() {
+          return `hello, my name is ${this.name}`
+        }
+      }
+
+      class Player extends User {
+        public game: string
+        constructor(name: string, game: string) {
+          super(name)
+          this.game = game
+        }
+
+        playing() {
+          return `Im playing ${this.game}`
+        }
+      }
+
+      const player = new Player('caique', 'RDR2')
+
+      const clone = si.produce(player)
+
+      expect(Object.getPrototypeOf(clone)).toBeInstanceOf(User)
+      expect(clone).toBeInstanceOf(Player)
     })
   })
 })

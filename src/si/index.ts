@@ -192,6 +192,7 @@ export default (() => {
     }
 
     const clonedBaseState = cloneDeep(baseState)
+
     if (isUndefined(producer)) {
       return freezeDeep(clonedBaseState)
     }
