@@ -56,6 +56,30 @@ describe('Simple Immuter Test Suite', () => {
       expect(result).toStrictEqual(expected)
     })
 
+    it('should merge two arrays when exists nested array', () => {
+      const books_1 = ['Design Patterns']
+      const books_2 = ['Rápido e Devagar']
+      const books_3 = [['Rápido e Devagar']]
+
+      const expected = [...books_1, ...books_2, ...[...books_3]]
+
+      const result = si.produce(books_1, books_2, books_3)
+
+      expect(result).toStrictEqual(expected)
+    })
+
+    it('should merge two arrays when exists nested array with object', () => {
+      const books_1 = ['Design Patterns']
+      const books_2 = ['Rápido e Devagar']
+      const books_3 = [[{ book: 'Rápido e Devagar' }]]
+
+      const expected = [...books_1, ...books_2, ...[...books_3]]
+
+      const result = si.produce(books_1, books_2, books_3)
+
+      expect(result).toStrictEqual(expected)
+    })
+
     it('should merge three arrays', () => {
       const books_1 = ['Design Patterns']
       const books_2 = ['Rápido e Devagar']
@@ -68,16 +92,16 @@ describe('Simple Immuter Test Suite', () => {
       expect(result).toStrictEqual(expected)
     })
 
-    it('should throw Error when marge different types', () => {
+    it('should throw Error when marge different types ex: 5', () => {
       const books_1 = ['Design Patterns']
       const books_2 = { name: 'Rápido e Devagar' }
 
       expect(() => si.produce(books_1, books_2)).toThrowError(
-        'baseState and producer are incompatibles',
+        'Cannot merge these types, because they are different types',
       )
     })
 
-    it('should throw Error when marge different types', () => {
+    it('should throw Error when marge different types ex: 6', () => {
       const books_1 = ['Design Patterns']
       const books_2 = { name: 'Rápido e Devagar' }
       const books_3 = { name: 'Programador Pragmático' }
@@ -87,7 +111,7 @@ describe('Simple Immuter Test Suite', () => {
       )
     })
 
-    it('should throw Error when marge different types', () => {
+    it('should throw Error when marge different types ex: 7', () => {
       const books_1 = { name: 'Rápido e Devagar' }
       const books_2 = { name: 'Sapiens' }
       const books_3 = ['Programador Pragmático']
@@ -173,16 +197,16 @@ describe('Simple Immuter Test Suite', () => {
   })
 
   describe('Test suit about states', () => {
-    it('should return false when baseState and produceState are different', () => {
+    it('should return false when baseState and produceState are different ex: 4', () => {
       const state_1 = ['caique']
       const state_2 = { user: 'caique' } as any
 
       expect(() => si.produce(state_1, state_2)).toThrowError(
-        'baseState and producer are incompatibles',
+        'Cannot merge these types, because they are different types',
       )
     })
 
-    it('should return false when states are different', () => {
+    it('should return false when states are different ex: 1', () => {
       const state_1 = ['caique']
       const state_2 = ['thomas']
       const state_3 = { user: 'caique' } as any
@@ -192,7 +216,7 @@ describe('Simple Immuter Test Suite', () => {
       )
     })
 
-    it('should return false when states are different', () => {
+    it('should return false when states are different ex: 2', () => {
       const state_1 = { name: 'caique' }
       const state_2 = { age: 29 }
       const state_3 = ['Sapiens'] as any
@@ -202,7 +226,7 @@ describe('Simple Immuter Test Suite', () => {
       )
     })
 
-    it('should return false when states are different', () => {
+    it('should return false when states are different ex: 3', () => {
       const state_1 = { name: 'caique' }
       const state_2 = { age: 29 }
       const state_3 = { category: 'programmer' }
