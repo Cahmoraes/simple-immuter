@@ -75,15 +75,6 @@ export default (() => {
   const isUndefined = (state: unknown): state is undefined =>
     typeCheck(state) === 'undefined'
 
-  const areDifferent = (...types: unknown[]) => {
-    for (let j = 0, i = j + 1; i < types.length; i = j + 1, j++) {
-      if (typeCheck(types[j]) !== typeCheck(types[i])) {
-        return true
-      }
-    }
-    return false
-  }
-
   const arrayEveryArray = <T>(states: T[]): states is T[] =>
     states.every(isArray)
 
@@ -107,19 +98,11 @@ export default (() => {
     states: any[],
   ) => {
     if (areAllObjects(clonedBaseState, producer) && arrayEveryObject(states)) {
-      try {
-        return freezeDeep(Object.assign(clonedBaseState, producer, ...states))
-      } catch {
-        throw new Error(errors.get(2))
-      }
+      return freezeDeep(Object.assign(clonedBaseState, producer, ...states))
     }
 
     if (areAllArrays(clonedBaseState, producer) && arrayEveryArray(states)) {
-      try {
-        return freezeDeep([...clonedBaseState, ...producer, ...flat(states, 1)])
-      } catch {
-        throw new Error(errors.get(2))
-      }
+      return freezeDeep([...clonedBaseState, ...producer, ...flat(states, 1)])
     }
 
     throw new Error(errors.get(3))
@@ -216,11 +199,13 @@ export default (() => {
       }
     }
 
-    if (areDifferent(clonedBaseState, producer)) {
-      throw new Error(errors.get(2))
-    } else {
-      throw new Error(errors.get(3))
-    }
+    throw new Error(errors.get(3))
+
+    // if (areDifferent(clonedBaseState, producer)) {
+    //   throw new Error(errors.get(2))
+    // } else {
+    //   throw new Error(errors.get(3))
+    // }
   }
 
   const cloneArray = (elementToClone: unknown[]): unknown[] =>
