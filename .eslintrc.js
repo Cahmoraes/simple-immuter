@@ -20,11 +20,11 @@ module.exports = {
       'error',
       {
         arrowParens: 'always',
+        endOfLine: 'auto',
         printWidth: 80,
         singleQuote: true,
         trailingComma: 'all',
         semi: false,
-        endOfLine: 'lf',
         tabWidth: 2,
       },
     ],
