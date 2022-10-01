@@ -1,5 +1,5 @@
 {
-  "name": "simple-immuter",
+  "name": "@cahmoraes93/simple-immuter",
   "version": "1.2.3",
   "main": "./dist/index.js",
   "repository": "https://github.com/Cahmoraes/simple-immuter.git",
@@ -11,6 +11,9 @@
   ],
   "license": "MIT",
   "description": "Pacote para trabalhar com imutabilidade e clonagem profunda de estruturas de dados",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "test": "npx jest",
     "test:watch": "npx jest --watchAll",
