@@ -14,7 +14,6 @@ export default (() => {
       fns.reduce((acc, fn) => fn(acc), value)
 
   const flat = (element: any, depth = Infinity) => {
-    if (typeCheck(element) !== 'array') return element
     return depth > 0
       ? element.reduce(
           (flatArray: any[], array: any[]) =>
@@ -81,32 +80,7 @@ export default (() => {
   const arrayEveryObject = <T>(states: T[]): states is T[] =>
     states.every(isObject)
 
-  const areAllSameType =
-    <T, K>(type: T) =>
-    (...objs: K[]): boolean =>
-      objs.every((obj) => typeCheck(obj) === type)
-
-  const areAllObjects = areAllSameType('object')
-
-  const areAllArrays = areAllSameType('array')
-
   const freeze = <T>(object: T) => Object.freeze(object)
-
-  const mergeAllObjectsOrArrays = (
-    clonedBaseState: any,
-    producer: any,
-    states: any[],
-  ) => {
-    if (areAllObjects(clonedBaseState, producer) && arrayEveryObject(states)) {
-      return freezeDeep(Object.assign(clonedBaseState, producer, ...states))
-    }
-
-    if (areAllArrays(clonedBaseState, producer) && arrayEveryArray(states)) {
-      return freezeDeep([...clonedBaseState, ...producer, ...flat(states, 1)])
-    }
-
-    throw new Error(errors.get(3))
-  }
 
   const freezeDeep = (elementToFreeze: any): any => {
     switch (typeCheck(elementToFreeze)) {
@@ -155,20 +129,16 @@ export default (() => {
 
   type BaseStateType<T> = T | Promise<T>
 
-  type DraftState<T> = T & { [key: string]: any }
-
-  type ProducerType<T> = ((draftState: DraftState<T>) => void) | object
+  type ProducerType<T> = (draft: T) => void
 
   type ProduceProps = <T>(
     baseState: BaseStateType<T>,
     producer?: ProducerType<T>,
-    ...states: any[]
   ) => any
 
   const produce: ProduceProps = <T>(
     baseState: BaseStateType<T>,
     producer?: ProducerType<T>,
-    ...states: any[]
   ) => {
     if (isPromise(baseState)) {
       return producePromise(baseState, producer)
@@ -185,27 +155,7 @@ export default (() => {
       return freezeDeep(clonedBaseState)
     }
 
-    if (states.length > 0) {
-      return mergeAllObjectsOrArrays(clonedBaseState, producer, states)
-    }
-
-    if (areAllObjects(clonedBaseState, producer)) {
-      return freezeDeep(Object.assign(clonedBaseState, producer))
-    }
-
-    if (areAllArrays(clonedBaseState, producer)) {
-      if (Array.isArray(producer)) {
-        return freezeDeep([...clonedBaseState, ...producer])
-      }
-    }
-
     throw new Error(errors.get(3))
-
-    // if (areDifferent(clonedBaseState, producer)) {
-    //   throw new Error(errors.get(2))
-    // } else {
-    //   throw new Error(errors.get(3))
-    // }
   }
 
   const cloneArray = (elementToClone: unknown[]): unknown[] =>
@@ -255,7 +205,27 @@ export default (() => {
     }
   }
 
+  type MergeProps = <T, K extends object[]>(
+    baseState: BaseStateType<T>,
+    ...states: K
+  ) => T & K
+
+  const merge: MergeProps = (baseState, ...states) => {
+    const clonedBaseState = cloneDeep(baseState)
+
+    if (isArray(clonedBaseState) && arrayEveryArray(states)) {
+      return freezeDeep([...clonedBaseState, ...flat(states, 1)])
+    }
+
+    if (isObject(baseState) && arrayEveryObject(states)) {
+      return freezeDeep(Object.assign(clonedBaseState, ...states))
+    }
+
+    throw new Error(errors.get(3))
+  }
+
   return {
     produce,
+    merge,
   }
 })()

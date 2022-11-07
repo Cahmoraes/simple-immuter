@@ -2,13 +2,16 @@
   "name": "@cahmoraes93/simple-immuter",
   "version": "1.2.3",
   "main": "./dist/index.js",
-  "repository": "https://github.com/Cahmoraes/simple-immuter.git",
   "author": "Cahmoraes <ike.moraes93@gmail.com>",
   "keywords": [
     "brasil",
     "programação funcional",
     "imutabilidade"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cahmoraes/simple-immuter.git"
+  },
   "license": "MIT",
   "description": "Pacote para trabalhar com imutabilidade e clonagem profunda de estruturas de dados",
   "publishConfig": {
@@ -18,7 +21,7 @@
     "test": "npx jest",
     "test:watch": "npx jest --watchAll",
     "test:cov": "npx jest --coverage",
-    "build": "tsup",
+    "build": "tsup --format esm,cjs",
     "dev": "ts-node-dev --respawn --transpile-only --ignore-watch ./node_modes ./app/index.ts"
   },
   "devDependencies": {
@@ -37,8 +40,5 @@
     "ts-node-dev": "^2.0.0",
     "tsup": "^6.2.3",
     "typescript": "^4.8.2"
-  },
-  "dependencies": {
-    "build": "^0.1.4"
   }
 }
