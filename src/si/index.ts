@@ -14,6 +14,7 @@ export default (() => {
       fns.reduce((acc, fn) => fn(acc), value)
 
   const flat = (element: any, depth = Infinity) => {
+    if (typeCheck(element) !== 'array') return element
     return depth > 0
       ? element.reduce(
           (flatArray: any[], array: any[]) =>
@@ -80,9 +81,34 @@ export default (() => {
   const arrayEveryObject = <T>(states: T[]): states is T[] =>
     states.every(isObject)
 
+  const areAllSameType =
+    <T, K>(type: T) =>
+    (...objs: K[]): boolean =>
+      objs.every((obj) => typeCheck(obj) === type)
+
+  const areAllObjects = areAllSameType('object')
+
+  const areAllArrays = areAllSameType('array')
+
   const freeze = <T>(object: T) => Object.freeze(object)
 
-  const freezeDeep = (elementToFreeze: any): any => {
+  const mergeAllObjectsOrArrays = (
+    clonedBaseState: any,
+    producer: any,
+    states: any[],
+  ) => {
+    if (areAllObjects(clonedBaseState, producer) && arrayEveryObject(states)) {
+      return deepFreeze(Object.assign(clonedBaseState, producer, ...states))
+    }
+
+    if (areAllArrays(clonedBaseState, producer) && arrayEveryArray(states)) {
+      return deepFreeze([...clonedBaseState, ...producer, ...flat(states, 1)])
+    }
+
+    throw new Error(errors.get(3))
+  }
+
+  const deepFreeze = <T extends CloneType>(elementToFreeze: T): T => {
     switch (typeCheck(elementToFreeze)) {
       case 'object':
         return pipe(
@@ -92,17 +118,17 @@ export default (() => {
         )(
           getKeysAndSymbolsFromObject(elementToFreeze).map((key) => [
             key,
-            freezeDeep(elementToFreeze[key]),
+            deepFreeze((elementToFreeze as any)[key]),
           ]),
         )
       case 'array':
-        return freeze(elementToFreeze.map(freezeDeep))
+        return freeze((elementToFreeze as any).map(deepFreeze))
       case 'set':
-        return immuterSet(elementToFreeze)
+        return immuterSet(elementToFreeze as any) as T
       case 'map': {
         const freezedMap = new Map()
-        elementToFreeze.forEach((value: unknown, key: unknown) => {
-          freezedMap.set(key, freezeDeep(value))
+        ;(elementToFreeze as any[]).forEach((value: unknown, key: unknown) => {
+          freezedMap.set(key, deepFreeze(value as any))
         })
         return immuterMap(freezedMap)
       }
@@ -115,12 +141,12 @@ export default (() => {
     try {
       const resolvedState = await baseState
       if (isUndefined(producer)) {
-        return freezeDeep(resolvedState)
+        return deepFreeze(resolvedState)
       }
 
       if (isFunction(producer)) {
         producer(resolvedState)
-        return freezeDeep(resolvedState)
+        return deepFreeze(resolvedState)
       }
     } catch (error: any) {
       return new Error(error)
@@ -129,37 +155,61 @@ export default (() => {
 
   type BaseStateType<T> = T | Promise<T>
 
-  type ProducerType<T> = (draft: T) => void
+  type DraftState<T> = T & { [key: string]: any }
 
-  type ProduceProps = <T>(
-    baseState: BaseStateType<T>,
-    producer?: ProducerType<T>,
+  type ProducerType<T> = ((draftState: DraftState<T>) => any) | object
+
+  type ReturnProduce<T, K extends ProducerType<T> | undefined> = K extends (
+    args: any,
   ) => any
+    ? T & ReturnType<K>
+    : T
 
-  const produce: ProduceProps = <T>(
+  type ProduceProps = <T extends CloneType>(
     baseState: BaseStateType<T>,
     producer?: ProducerType<T>,
+    ...states: any[]
+  ) => ReturnProduce<T, typeof producer>
+
+  const produce: ProduceProps = <T extends CloneType>(
+    baseState: BaseStateType<T>,
+    producer?: ProducerType<T>,
+    ...states: any[]
   ) => {
     if (isPromise(baseState)) {
       return producePromise(baseState, producer)
     }
 
-    const clonedBaseState = cloneDeep(baseState)
+    const clonedBaseState = deepClone(baseState)
 
     if (isUndefined(producer)) {
-      return freezeDeep(clonedBaseState)
+      return deepFreeze(clonedBaseState)
     }
 
     if (isFunction(producer)) {
       producer(clonedBaseState)
-      return freezeDeep(clonedBaseState)
+      return deepFreeze(clonedBaseState)
+    }
+
+    if (states.length > 0) {
+      return mergeAllObjectsOrArrays(clonedBaseState, producer, states)
+    }
+
+    if (areAllObjects(clonedBaseState, producer)) {
+      return deepFreeze(Object.assign(clonedBaseState, producer))
+    }
+
+    if (areAllArrays(clonedBaseState, producer)) {
+      if (Array.isArray(producer) && Array.isArray(clonedBaseState)) {
+        return deepFreeze([...clonedBaseState, ...producer])
+      }
     }
 
     throw new Error(errors.get(3))
   }
 
-  const cloneArray = (elementToClone: unknown[]): unknown[] =>
-    elementToClone.map(cloneDeep)
+  const cloneArray = <T extends any[]>(elementToClone: T) =>
+    elementToClone.map(deepClone)
 
   const cloneObject = <T extends { [hey: string | symbol]: any }>(
     elementToClone: T,
@@ -171,61 +221,47 @@ export default (() => {
     )(
       getKeysAndSymbolsFromObject(elementToClone).map((key) => [
         key,
-        cloneDeep(elementToClone[key]),
+        deepClone(elementToClone[key]),
       ]),
     )
   }
 
-  const cloneMap = <K, V>(elementToClone: Map<K, V>) => {
+  const cloneMap = <K, V extends CloneType>(elementToClone: Map<K, V>) => {
     const clonedMap = new Map()
     elementToClone.forEach((value, key) => {
-      clonedMap.set(key, cloneDeep(value))
+      clonedMap.set(key, deepClone(value))
     })
     return clonedMap
   }
 
-  const cloneSet = <T>(elementToClone: Set<T>): Set<unknown> => {
+  const cloneSet = <T extends CloneType>(
+    elementToClone: Set<T>,
+  ): Set<unknown> => {
     const clonedSet = new Set()
-    elementToClone.forEach((value) => clonedSet.add(cloneDeep(value)))
+    elementToClone.forEach((value) => clonedSet.add(deepClone(value)))
     return clonedSet
   }
 
-  const cloneDeep = (element: any): any => {
+  type CloneType = object | Map<any, any> | Set<any> | any[]
+
+  const deepClone = <T extends CloneType>(element: T): T => {
     switch (typeCheck(element)) {
       case 'object':
         return cloneObject(element)
       case 'array':
-        return cloneArray(element)
+        return cloneArray(element as any[]) as T
       case 'map':
-        return cloneMap(element)
+        return cloneMap(element as Map<any, any>) as T
       case 'set':
-        return cloneSet(element)
+        return cloneSet(element as Set<any>) as T
       default:
         return element
     }
   }
 
-  type MergeProps = <T, K extends object[]>(
-    baseState: BaseStateType<T>,
-    ...states: K
-  ) => T & K
-
-  const merge: MergeProps = (baseState, ...states) => {
-    const clonedBaseState = cloneDeep(baseState)
-
-    if (isArray(clonedBaseState) && arrayEveryArray(states)) {
-      return freezeDeep([...clonedBaseState, ...flat(states, 1)])
-    }
-
-    if (isObject(baseState) && arrayEveryObject(states)) {
-      return freezeDeep(Object.assign(clonedBaseState, ...states))
-    }
-
-    throw new Error(errors.get(3))
-  }
-
   return {
     produce,
-    merge,
+    deepClone,
+    deepFreeze,
   }
 })()

@@ -30,7 +30,7 @@ describe('Simple Immuter Test Suite', () => {
 
       const expected = Object.assign({}, user_1, user_2, user_3)
 
-      const clone = si.merge(user_1, user_2, user_3)
+      const clone = si.produce(user_1, user_2, user_3)
 
       expect(clone).toStrictEqual(expected)
     })
@@ -39,7 +39,7 @@ describe('Simple Immuter Test Suite', () => {
       const name = { name: 'caique' }
       const age = { age: 29 }
 
-      const result = si.merge(name, age)
+      const result = si.produce(name, age)
 
       expect(result).toHaveProperty('age', 29)
       expect(result).toHaveProperty('name', 'caique')
@@ -51,7 +51,7 @@ describe('Simple Immuter Test Suite', () => {
 
       const expected = [...books_1, ...books_2]
 
-      const result = si.merge(books_1, books_2)
+      const result = si.produce(books_1, books_2)
 
       expect(result).toStrictEqual(expected)
     })
@@ -63,7 +63,7 @@ describe('Simple Immuter Test Suite', () => {
 
       const expected = [...books_1, ...books_2, ...[...books_3]]
 
-      const result = si.merge(books_1, books_2, books_3)
+      const result = si.produce(books_1, books_2, books_3)
 
       expect(result).toStrictEqual(expected)
     })
@@ -71,11 +71,11 @@ describe('Simple Immuter Test Suite', () => {
     it('should merge two arrays when exists nested array with object', () => {
       const books_1 = ['Design Patterns']
       const books_2 = ['Rápido e Devagar']
-      const books_3 = [[{ book: 'Rápido e Devagar' }]] as any
+      const books_3 = [[{ book: 'Rápido e Devagar' }]]
 
       const expected = [...books_1, ...books_2, ...[...books_3]]
 
-      const result = si.merge(books_1, books_2, books_3)
+      const result = si.produce(books_1, books_2, books_3)
 
       expect(result).toStrictEqual(expected)
     })
@@ -87,26 +87,26 @@ describe('Simple Immuter Test Suite', () => {
 
       const expected = [...books_1, ...books_2, ...books_3]
 
-      const result = si.merge(books_1, books_2, books_3)
-      console.log('result', result)
+      const result = si.produce(books_1, books_2, books_3)
+
       expect(result).toStrictEqual(expected)
     })
 
     it('should throw Error when marge different types ex: 5', () => {
       const books_1 = ['Design Patterns']
-      const books_2 = { name: 'Rápido e Devagar' } as any
+      const books_2 = { name: 'Rápido e Devagar' }
 
-      expect(() => si.merge(books_1, books_2)).toThrowError(
+      expect(() => si.produce(books_1, books_2)).toThrowError(
         'Cannot merge these types, because they are different types',
       )
     })
 
     it('should throw Error when marge different types ex: 6', () => {
       const books_1 = ['Design Patterns']
-      const books_2 = { name: 'Rápido e Devagar' } as any
-      const books_3 = { name: 'Programador Pragmático' } as any
+      const books_2 = { name: 'Rápido e Devagar' }
+      const books_3 = { name: 'Programador Pragmático' }
 
-      expect(() => si.merge(books_1, books_2, books_3)).toThrowError(
+      expect(() => si.produce(books_1, books_2, books_3)).toThrowError(
         'Cannot merge these types, because they are different types',
       )
     })
@@ -116,7 +116,7 @@ describe('Simple Immuter Test Suite', () => {
       const books_2 = { name: 'Sapiens' }
       const books_3 = ['Programador Pragmático']
 
-      expect(() => si.merge(books_1, books_2, books_3)).toThrowError(
+      expect(() => si.produce(books_1, books_2, books_3)).toThrowError(
         'Cannot merge these types, because they are different types',
       )
     })
@@ -126,7 +126,7 @@ describe('Simple Immuter Test Suite', () => {
       const books_2 = ['Rápido e Devagar']
       const books_3 = ['Sapiens']
 
-      const result = si.merge(books_1, books_2, books_3)
+      const result = si.produce(books_1, books_2, books_3)
 
       expect(() => result.push('Cangaceiro Javascript')).toThrowError(
         'Cannot add property 3, object is not extensible',
@@ -188,8 +188,10 @@ describe('Simple Immuter Test Suite', () => {
 
       const result = si.produce(user, (draftState) => {
         draftState.name = 'thomas'
+        draftState.age = 23
       })
 
+      expect(result).toHaveProperty('age')
       expect(result).toHaveProperty('name', 'thomas')
     })
   })
@@ -209,30 +211,30 @@ describe('Simple Immuter Test Suite', () => {
       const state_2 = ['thomas']
       const state_3 = { user: 'caique' } as any
 
-      expect(() => si.merge(state_1, state_2, state_3)).toThrowError(
+      expect(() => si.produce(state_1, state_2, state_3)).toThrowError(
         'Cannot merge these types, because they are different types',
       )
     })
 
     it('should return false when states are different ex: 2', () => {
       const state_1 = { name: 'caique' }
-      const state_2 = { age: 29 } as any
+      const state_2 = { age: 29 }
       const state_3 = ['Sapiens'] as any
 
-      expect(() => si.merge(state_1, state_2, state_3)).toThrowError(
+      expect(() => si.produce(state_1, state_2, state_3)).toThrowError(
         'Cannot merge these types, because they are different types',
       )
     })
 
     it('should return false when states are different ex: 3', () => {
       const state_1 = { name: 'caique' }
-      const state_2 = { age: 29 } as any
-      const state_3 = { category: 'programmer' } as any
-      const state_4 = { category: 'programmer' } as any
+      const state_2 = { age: 29 }
+      const state_3 = { category: 'programmer' }
+      const state_4 = { category: 'programmer' }
       const state_5 = ['Rápido e Devagar'] as any
 
       expect(() =>
-        si.merge(state_1, state_2, state_3, state_4, state_5),
+        si.produce(state_1, state_2, state_3, state_4, state_5),
       ).toThrowError(
         'Cannot merge these types, because they are different types',
       )
@@ -253,13 +255,13 @@ describe('Simple Immuter Test Suite', () => {
       const promise = Promise.resolve({ name: 'caique' })
 
       const result = si.produce(promise, (draftState) => {
-        draftState.name = 'thomas'
+        draftState.age = 28
       })
 
       expect(result).toBeInstanceOf(Promise)
 
       const resolved = await result
-      expect(resolved).toStrictEqual({ name: 'thomas' })
+      expect(resolved).toStrictEqual({ name: 'caique', age: 28 })
     })
 
     it('should resolve when promise is Rejected', async () => {
