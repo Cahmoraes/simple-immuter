@@ -13,17 +13,6 @@ export default (() => {
     (value: any) =>
       fns.reduce((acc, fn) => fn(acc), value)
 
-  const flat = (element: any, depth = Infinity) => {
-    if (typeCheck(element) !== 'array') return element
-    return depth > 0
-      ? element.reduce(
-          (flatArray: any[], array: any[]) =>
-            flatArray.concat(flat(array, --depth)),
-          [],
-        )
-      : element
-  }
-
   const createObjectFromEntries = (entries: any[]) =>
     Object.fromEntries(entries)
 
@@ -60,53 +49,13 @@ export default (() => {
       .toLowerCase()
   }
 
-  const isArray = <T>(state: unknown): state is Array<T> =>
-    typeCheck(state) === 'array'
-
-  const isObject = <T>(state: unknown): state is T =>
-    typeCheck(state) === 'object'
-
   const isFunction = (state: unknown): state is (...props: unknown[]) => any =>
     typeCheck(state) === 'function'
-
-  const isPromise = <T>(state: unknown): state is Promise<T> =>
-    typeCheck(state) === 'promise'
 
   const isUndefined = (state: unknown): state is undefined =>
     typeCheck(state) === 'undefined'
 
-  const arrayEveryArray = <T>(states: T[]): states is T[] =>
-    states.every(isArray)
-
-  const arrayEveryObject = <T>(states: T[]): states is T[] =>
-    states.every(isObject)
-
-  const areAllSameType =
-    <T, K>(type: T) =>
-    (...objs: K[]): boolean =>
-      objs.every((obj) => typeCheck(obj) === type)
-
-  const areAllObjects = areAllSameType('object')
-
-  const areAllArrays = areAllSameType('array')
-
   const freeze = <T>(object: T) => Object.freeze(object)
-
-  const mergeAllObjectsOrArrays = (
-    clonedBaseState: any,
-    producer: any,
-    states: any[],
-  ) => {
-    if (areAllObjects(clonedBaseState, producer) && arrayEveryObject(states)) {
-      return deepFreeze(Object.assign(clonedBaseState, producer, ...states))
-    }
-
-    if (areAllArrays(clonedBaseState, producer) && arrayEveryArray(states)) {
-      return deepFreeze([...clonedBaseState, ...producer, ...flat(states, 1)])
-    }
-
-    throw new Error(errors.get(3))
-  }
 
   const deepFreeze = <T extends CloneType>(elementToFreeze: T): T => {
     switch (typeCheck(elementToFreeze)) {
@@ -137,49 +86,24 @@ export default (() => {
     }
   }
 
-  const producePromise = async (baseState: Promise<any>, producer: any) => {
-    try {
-      const resolvedState = await baseState
-      if (isUndefined(producer)) {
-        return deepFreeze(resolvedState)
-      }
-
-      if (isFunction(producer)) {
-        producer(resolvedState)
-        return deepFreeze(resolvedState)
-      }
-    } catch (error: any) {
-      return new Error(error)
-    }
-  }
-
-  type BaseStateType<T> = T | Promise<T>
-
+  type BaseStateType<T> = DraftState<T>
   type DraftState<T> = T & { [key: string]: any }
+  type DraftResult<T> = DraftState<T> | void
+  type ProducerType<T> = (draftState: DraftState<T>) => DraftResult<T>
+  type ReturnProduce<
+    T,
+    K extends ProducerType<T> | undefined,
+  > = K extends ProducerType<T> ? T & { [key: string]: any } : T
 
-  type ProducerType<T> = ((draftState: DraftState<T>) => any) | object
-
-  type ReturnProduce<T, K extends ProducerType<T> | undefined> = K extends (
-    args: any,
-  ) => any
-    ? T & ReturnType<K>
-    : T
-
-  type ProduceProps = <T extends CloneType>(
+  function produce<T extends CloneType>(baseState: BaseStateType<T>): T
+  function produce<T extends CloneType>(
+    baseState: BaseStateType<T>,
+    producer: ProducerType<T>,
+  ): ReturnProduce<T, typeof producer>
+  function produce<T extends CloneType>(
     baseState: BaseStateType<T>,
     producer?: ProducerType<T>,
-    ...states: any[]
-  ) => ReturnProduce<T, typeof producer>
-
-  const produce: ProduceProps = <T extends CloneType>(
-    baseState: BaseStateType<T>,
-    producer?: ProducerType<T>,
-    ...states: any[]
-  ) => {
-    if (isPromise(baseState)) {
-      return producePromise(baseState, producer)
-    }
-
+  ): ReturnProduce<T, typeof producer> {
     const clonedBaseState = deepClone(baseState)
 
     if (isUndefined(producer)) {
@@ -189,20 +113,6 @@ export default (() => {
     if (isFunction(producer)) {
       producer(clonedBaseState)
       return deepFreeze(clonedBaseState)
-    }
-
-    if (states.length > 0) {
-      return mergeAllObjectsOrArrays(clonedBaseState, producer, states)
-    }
-
-    if (areAllObjects(clonedBaseState, producer)) {
-      return deepFreeze(Object.assign(clonedBaseState, producer))
-    }
-
-    if (areAllArrays(clonedBaseState, producer)) {
-      if (Array.isArray(producer) && Array.isArray(clonedBaseState)) {
-        return deepFreeze([...clonedBaseState, ...producer])
-      }
     }
 
     throw new Error(errors.get(3))
