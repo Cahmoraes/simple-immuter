@@ -166,7 +166,7 @@ describe('Simple Immuter Test Suite', () => {
     })
   })
 
-  describe('Test suit about deepFreeze', () => {
+  describe('Test suit about freezeDeep', () => {
     it('should return a deep freeze clone from object', () => {
       const user = {
         name: 'cahmoraes',
@@ -174,7 +174,7 @@ describe('Simple Immuter Test Suite', () => {
         books: ['Sapiens', 'Rápido e Devagar'],
       }
 
-      const result = si.deepFreeze(user)
+      const result = si.freezeDeep(user)
       expect(Object.isFrozen(result.books)).toBeTruthy()
 
       expect(Object.isFrozen(result)).toBeTruthy()
@@ -187,7 +187,7 @@ describe('Simple Immuter Test Suite', () => {
         ['age', '29'],
       ])
 
-      const result = si.deepFreeze(map)
+      const result = si.freezeDeep(map)
 
       expect(Object.isFrozen(result)).toBeTruthy()
       expect(result.get('name')).toBe('caique')
@@ -196,7 +196,7 @@ describe('Simple Immuter Test Suite', () => {
     it('should return a deep freeze clone from Set', () => {
       const set = new Set(['name', 'caique'])
 
-      const result = si.deepFreeze(set)
+      const result = si.freezeDeep(set)
       const invalido = 'invalido'
 
       result.add(invalido)
@@ -206,7 +206,7 @@ describe('Simple Immuter Test Suite', () => {
     })
   })
 
-  describe('Test suit about deepClone', () => {
+  describe('Test suit about cloneDeep', () => {
     it('should return a deep clone from object', () => {
       const user = {
         name: 'cahmoraes',
@@ -214,7 +214,7 @@ describe('Simple Immuter Test Suite', () => {
         books: ['Sapiens', 'Rápido e Devagar'],
       }
 
-      const result = si.deepClone(user)
+      const result = si.cloneDeep(user)
       result.name = 'thomas'
       result.books.push('Arquitetura Limpa')
 

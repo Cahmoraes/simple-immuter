@@ -57,7 +57,7 @@ export default (() => {
 
   const freeze = <T>(object: T) => Object.freeze(object)
 
-  const deepFreeze = <T extends CloneType>(elementToFreeze: T): Readonly<T> => {
+  const freezeDeep = <T extends CloneType>(elementToFreeze: T): Readonly<T> => {
     switch (typeCheck(elementToFreeze)) {
       case 'object':
         return pipe(
@@ -67,17 +67,17 @@ export default (() => {
         )(
           getKeysAndSymbolsFromObject(elementToFreeze).map((key) => [
             key,
-            deepFreeze((elementToFreeze as any)[key]),
+            freezeDeep((elementToFreeze as any)[key]),
           ]),
         )
       case 'array':
-        return freeze((elementToFreeze as any).map(deepFreeze))
+        return freeze((elementToFreeze as any).map(freezeDeep))
       case 'set':
         return immuterSet(elementToFreeze as any) as Readonly<T>
       case 'map': {
         const freezedMap = new Map()
         ;(elementToFreeze as any[]).forEach((value: unknown, key: unknown) => {
-          freezedMap.set(key, deepFreeze(value as any))
+          freezedMap.set(key, freezeDeep(value as any))
         })
         return immuterMap(freezedMap) as Readonly<T>
       }
@@ -88,13 +88,14 @@ export default (() => {
 
   type CloneType = object | Map<unknown, unknown> | Set<unknown> | unknown[]
   type BaseStateType<T> = DraftState<T>
+  type CombinedType = Record<string, unknown>
   type DraftState<T> = T & { [key: string]: any }
   type DraftResult<T> = DraftState<T> | void
   type ProducerType<T> = (draftState: DraftState<T>) => DraftResult<T>
   type ReturnProduce<
     T,
     K extends ProducerType<T> | undefined,
-  > = K extends ProducerType<T> ? T & { [key: string]: any } : Readonly<T>
+  > = K extends ProducerType<T> ? T & CombinedType : Readonly<T>
 
   function produce<T extends CloneType>(
     baseState: BaseStateType<T>,
@@ -107,22 +108,22 @@ export default (() => {
     baseState: BaseStateType<T>,
     producer?: ProducerType<T>,
   ): ReturnProduce<Readonly<T>, typeof producer> {
-    const clonedBaseState = deepClone(baseState)
+    const clonedBaseState = cloneDeep(baseState)
 
     if (isUndefined(producer)) {
-      return deepFreeze(clonedBaseState)
+      return freezeDeep(clonedBaseState)
     }
 
     if (isFunction(producer)) {
       producer(clonedBaseState)
-      return deepFreeze(clonedBaseState)
+      return freezeDeep(clonedBaseState)
     }
 
     throw new Error(errors.get(3))
   }
 
   const cloneArray = <T extends any[]>(elementToClone: T) =>
-    elementToClone.map(deepClone)
+    elementToClone.map(cloneDeep)
 
   const cloneObject = <T extends { [hey: string | symbol]: any }>(
     elementToClone: T,
@@ -134,7 +135,7 @@ export default (() => {
     )(
       getKeysAndSymbolsFromObject(elementToClone).map((key) => [
         key,
-        deepClone(elementToClone[key]),
+        cloneDeep(elementToClone[key]),
       ]),
     )
   }
@@ -142,7 +143,7 @@ export default (() => {
   const cloneMap = <K, V extends CloneType>(elementToClone: Map<K, V>) => {
     const clonedMap = new Map()
     elementToClone.forEach((value, key) => {
-      clonedMap.set(key, deepClone(value))
+      clonedMap.set(key, cloneDeep(value))
     })
     return clonedMap
   }
@@ -151,11 +152,11 @@ export default (() => {
     elementToClone: Set<T>,
   ): Set<unknown> => {
     const clonedSet = new Set()
-    elementToClone.forEach((value) => clonedSet.add(deepClone(value)))
+    elementToClone.forEach((value) => clonedSet.add(cloneDeep(value)))
     return clonedSet
   }
 
-  const deepClone = <T extends CloneType>(element: T): T => {
+  const cloneDeep = <T extends CloneType>(element: T): T => {
     switch (typeCheck(element)) {
       case 'object':
         return cloneObject(element)
@@ -172,7 +173,7 @@ export default (() => {
 
   return {
     produce,
-    deepClone,
-    deepFreeze,
+    cloneDeep,
+    freezeDeep,
   }
 })()
