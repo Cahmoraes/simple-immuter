@@ -80,6 +80,38 @@ describe('Simple Immuter Test Suite', () => {
       const clone = si.produce(baseState)
       expect(clone).toStrictEqual(baseState)
     })
+
+    it('should preserve prototype inheritance', () => {
+      class User {
+        public name: string
+        constructor(name: string) {
+          this.name = name
+        }
+
+        greeting() {
+          return `hello, my name is ${this.name}`
+        }
+      }
+
+      class Player extends User {
+        public game: string
+        constructor(name: string, game: string) {
+          super(name)
+          this.game = game
+        }
+
+        playing() {
+          return `Im playing ${this.game}`
+        }
+      }
+
+      const player = new Player('caique', 'RDR2')
+
+      const clone = si.produce(player)
+
+      expect(Object.getPrototypeOf(clone)).toBeInstanceOf(User)
+      expect(clone).toBeInstanceOf(Player)
+    })
   })
 
   describe('Test suit about draftState', () => {
@@ -134,37 +166,37 @@ describe('Simple Immuter Test Suite', () => {
     })
   })
 
-  describe('Test suite about class and prototypes', () => {
-    it('should preserve prototype inheritance', () => {
-      class User {
-        public name: string
-        constructor(name: string) {
-          this.name = name
-        }
-
-        greeting() {
-          return `hello, my name is ${this.name}`
-        }
+  describe('Test suit about deepFreeze', () => {
+    it('should return a deep freeze clone from object', () => {
+      const user = {
+        name: 'cahmoraes',
+        age: 28,
+        books: ['Sapiens', 'Rápido e Devagar'],
       }
 
-      class Player extends User {
-        public game: string
-        constructor(name: string, game: string) {
-          super(name)
-          this.game = game
-        }
+      const result = si.deepFreeze(user)
 
-        playing() {
-          return `Im playing ${this.game}`
-        }
+      expect(Object.isFrozen(result)).toBeTruthy()
+      expect(result).not.toBe(user)
+    })
+  })
+
+  describe('Test suit about deepClone', () => {
+    it('should return a deep clone from object', () => {
+      const user = {
+        name: 'cahmoraes',
+        age: 28,
+        books: ['Sapiens', 'Rápido e Devagar'],
       }
 
-      const player = new Player('caique', 'RDR2')
+      const result = si.deepClone(user)
+      result.name = 'thomas'
 
-      const clone = si.produce(player)
+      expect(Object.isFrozen(result)).toBeFalsy()
+      expect(result).not.toBe(user)
+      expect(result).toHaveProperty('name', 'thomas')
 
-      expect(Object.getPrototypeOf(clone)).toBeInstanceOf(User)
-      expect(clone).toBeInstanceOf(Player)
+      expect(user).toHaveProperty('name', 'cahmoraes')
     })
   })
 })
