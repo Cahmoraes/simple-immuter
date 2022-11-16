@@ -83,6 +83,8 @@ console.log(Object.isFrozen(clone))
 
 ## Gerando clone profundo e mutável com deepClone.
 
+deepClone recebe uma estrutura de dados e gera um clone profundo.
+
 ```js
 deepClone(baseState: Object | Array | Map | Set): nextState
 ```
@@ -108,6 +110,8 @@ console.log(Object.isFrozen(clone))
 ```
 
 ## Gerando clone profundo e imutável com deepFreeze.
+
+deepFreeze recebe uma estrutura de dados e gera um clone profundo e imutável.
 
 ```js
 deepFreeze(baseState: Object | Array | Map | Set): nextState
