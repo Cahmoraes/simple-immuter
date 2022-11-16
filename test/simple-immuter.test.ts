@@ -175,6 +175,7 @@ describe('Simple Immuter Test Suite', () => {
       }
 
       const result = si.deepFreeze(user)
+      expect(Object.isFrozen(result.books)).toBeTruthy()
 
       expect(Object.isFrozen(result)).toBeTruthy()
       expect(result).not.toBe(user)
@@ -191,10 +192,12 @@ describe('Simple Immuter Test Suite', () => {
 
       const result = si.deepClone(user)
       result.name = 'thomas'
+      result.books.push('Arquitetura Limpa')
 
       expect(Object.isFrozen(result)).toBeFalsy()
       expect(result).not.toBe(user)
       expect(result).toHaveProperty('name', 'thomas')
+      expect(result.books[2]).toBe('Arquitetura Limpa')
 
       expect(user).toHaveProperty('name', 'cahmoraes')
     })

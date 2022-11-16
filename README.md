@@ -19,10 +19,6 @@
   Inspirado na função produce da biblioteca Immer, o Simple Immuter opera de modo semelhante.<br>
   A ideia básica é que você aplicará todas as suas alterações a um draftState temporário, que é uma cópia profunda do currentState. Assim que todas as suas mutações forem concluídas, o Simple Immuter produzirá o nextState com base nas mutações do draftState em cima do currentState. Isso significa que você pode interagir com os seus dados simplesmente modificando-os e mantendo todos os benefícios dos dados imutáveis, isto é, o nextState será um cópia profunda e imutável do currentState.
 </p>
-<h3>Exemplo 1</h3>
-<img width="500" src="https://github.com/Cahmoraes/simple-immuter-development/blob/main/src/assets/images/example-1.png">
-<h3>Resultado</h3>
-<img width="400" src="https://github.com/Cahmoraes/simple-immuter-development/blob/main/src/assets/images/result-1.png">
 
 <p>
   O baseState não será alterado, mas o nextState será uma nova árvore imutável que reflete todas as alterações feitas no draftState (e compartilhando estruturalmente as coisas que não foram alteradas).
@@ -33,11 +29,13 @@
 
 <strong>producer</strong>: (opcional) Se for passado uma função, o parâmetro draftState será um clone de baseState, que pode ser alterado dentro da função producer. O nextState será o resultado de draftState em cima do currentState.
 
+## Gerando um clone profundo e imutável com produce
+
 ```js
 import { si } from '@cahmoraes93/simple-immuter'
 
 const user = {
-  name: 'cahmoraes',
+  name: 'caique',
   age: 28,
   books: ['Sapiens', 'Rápido e Devagar'],
 }
@@ -45,7 +43,75 @@ const user = {
 const clone = si.produce(user)
 
 console.log(clone)
-//=> {  name: 'cahmoraes',  age: 28,  books: ['Sapiens', 'Rápido e Devagar'] }
+//=> {  name: 'caique',  age: 28,  books: ['Sapiens', 'Rápido e Devagar'] }
+
+console.log(Object.isFrozen(clone))
+//=> true
+```
+
+## Gerando clone profundo e imutável com produce, e usando a função producer para atualizar informações do clone resultante
+
+```js
+import { si } from '@cahmoraes93/simple-immuter'
+
+const user = {
+  name: 'caique',
+  age: 28,
+  books: ['Sapiens', 'Rápido e Devagar'],
+}
+
+const clone = si.produce(user, (draftState) => {
+  draftState.name = 'thomas'
+  draftState.age = 20
+  draftState.books.push('Arquitetura Limpa')
+})
+
+console.log(clone)
+//=> {  name: 'thomas',  age: 20,  books: ['Sapiens', 'Rápido e Devagar', Arquitetura Limpa] }
+
+console.log(Object.isFrozen(clone))
+//=> true
+```
+
+## Gerando clone profundo e mutável com deepClone.
+
+```js
+import { si } from '@cahmoraes93/simple-immuter'
+
+const user = {
+  name: 'caique',
+  age: 28,
+  books: ['Sapiens', 'Rápido e Devagar'],
+}
+
+const clone = si.deepClone(user)
+clone.name = 'thomas'
+clone.books.push('Arquitetura Limpa')
+
+console.log(clone)
+//=> {  name: 'thomas',  age: 28,  books: ['Sapiens', 'Rápido e Devagar', 'Arquitetura Limpa'] }
+
+console.log(Object.isFrozen(clone))
+//=> false
+```
+
+## Gerando clone profundo e imutável com deepFreeze.
+
+```js
+import { si } from '@cahmoraes93/simple-immuter'
+
+const user = {
+  name: 'caique',
+  age: 28,
+  books: ['Sapiens', 'Rápido e Devagar'],
+}
+
+const clone = si.deepClone(user)
+clone.name = 'thomas'
+clone.books.push('Arquitetura Limpa')
+
+console.log(clone)
+//=> {  name: 'caique',  age: 28,  books: ['Sapiens', 'Rápido e Devagar'] }
 
 console.log(Object.isFrozen(clone))
 //=> true
