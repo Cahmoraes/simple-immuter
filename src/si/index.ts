@@ -86,6 +86,7 @@ export default (() => {
     }
   }
 
+  type CloneType = object | Map<unknown, unknown> | Set<unknown> | unknown[]
   type BaseStateType<T> = DraftState<T>
   type DraftState<T> = T & { [key: string]: any }
   type DraftResult<T> = DraftState<T> | void
@@ -151,8 +152,6 @@ export default (() => {
     elementToClone.forEach((value) => clonedSet.add(deepClone(value)))
     return clonedSet
   }
-
-  type CloneType = object | Map<any, any> | Set<any> | any[]
 
   const deepClone = <T extends CloneType>(element: T): T => {
     switch (typeCheck(element)) {

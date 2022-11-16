@@ -15,6 +15,18 @@ describe('Simple Immuter Test Suite', () => {
       expect(clone).toStrictEqual(user)
     })
 
+    it('should return an immutable copy', () => {
+      const user = {
+        name: 'cahmoraes',
+        age: 28,
+        books: ['Sapiens', 'Rápido e Devagar'],
+      }
+
+      const clone = si.produce(user)
+
+      expect(Object.isFrozen(clone)).toBeTruthy()
+    })
+
     it('should not change value of object resultant', () => {
       const user_1 = {
         name: 'cahmoraes',
@@ -79,26 +91,51 @@ describe('Simple Immuter Test Suite', () => {
         draftState.age = 23
       })
 
-      result.name
-
-      expect(result).toHaveProperty('age')
+      expect(user).not.toHaveProperty('age')
+      expect(result).toHaveProperty('age', 23)
       expect(result).toHaveProperty('name', 'thomas')
     })
-  })
 
-  describe('Test suit about states', () => {
-    it('should return false when baseState and produceState are different ex: 4', () => {
-      const state_1 = ['caique']
-      const state_2 = { user: 'caique' } as any
+    it('should return a clone object with nested properties changed', () => {
+      const user = {
+        name: 'caique',
+        age: 29,
+        address: {
+          street: 'Baker',
+          city: 'London',
+        },
+        hobbies: new Set(['books', 'sports']),
+      }
 
-      expect(() => si.produce(state_1, state_2)).toThrowError(
+      const result = si.produce(user, (draftState) => {
+        draftState.name = 'thomas'
+        draftState.age = 20
+        draftState.address.city = 'Constantinopla'
+        draftState.address.street = 'Rua X'
+        draftState.hobbies.add('games')
+        draftState.hobbies.delete('sports')
+      })
+
+      expect(user).toHaveProperty('age', 29)
+      expect(user.hobbies.has('sports')).toBeTruthy()
+
+      expect(result).toHaveProperty('age', 20)
+      expect(result).toHaveProperty('name', 'thomas')
+      expect(result.hobbies.has('games')).toBeTruthy()
+      expect(result.hobbies.has('sports')).not.toBeTruthy()
+    })
+
+    it('should throw an Erro when draftState is not a function', () => {
+      const notFunction: any = []
+
+      expect(() => si.produce({ name: 'caique' }, notFunction)).toThrow(
         'Cannot merge these types, because they are different types',
       )
     })
   })
 
   describe('Test suite about class and prototypes', () => {
-    it('should to hold the prototype inherit', () => {
+    it('should preserve prototype inheritance', () => {
       class User {
         public name: string
         constructor(name: string) {
