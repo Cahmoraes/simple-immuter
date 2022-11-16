@@ -94,7 +94,7 @@ export default (() => {
   type ReturnProduce<
     T,
     K extends ProducerType<T> | undefined,
-  > = K extends ProducerType<T> ? T & { [key: string]: any } : T
+  > = K extends ProducerType<T> ? T & { [key: string]: any } : Readonly<T>
 
   function produce<T extends CloneType>(
     baseState: BaseStateType<T>,
