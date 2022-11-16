@@ -24,6 +24,11 @@
   O baseState não será alterado, mas o nextState será uma nova árvore imutável que reflete todas as alterações feitas no draftState (e compartilhando estruturalmente as coisas que não foram alteradas).
 </p>
 
+## Notas da nova versão:
+
+Nesta versão, foi extraído as funções internas: <strong>deepFreeze</strong> e <strong>deepClone</strong>.
+Foi removido a compatibilidade da função produce, de receber Promises. Não houve mais sentido para isso e com sua remoção, diminuiu a quantidade de responsabilidades de produce, o que facilitou a melhoria do intelisense com TypeScript.
+
 <h3>produce</h3>
 
 ```js
