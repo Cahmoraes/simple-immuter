@@ -19,18 +19,18 @@ export default (() => {
   const getKeysAndSymbolsFromObject = (object: object) =>
     Reflect.ownKeys(object)
 
-  const immuterSet = (setToImmuter: any): Set<any> => {
+  const immuterSet = (setToImmuter: any): Readonly<Set<unknown>> => {
     setToImmuter.add = die(1)
     setToImmuter.delete = die(1)
     setToImmuter.clear = die(1)
-    return setToImmuter
+    return freeze(setToImmuter)
   }
 
-  const immuterMap = (mapToImmuter: any) => {
+  const immuterMap = (mapToImmuter: any): Readonly<Map<unknown, unknown>> => {
     mapToImmuter.set = die(1)
     mapToImmuter.delete = die(1)
     mapToImmuter.clear = die(1)
-    return mapToImmuter
+    return freeze(mapToImmuter)
   }
 
   const setPrototypeOf = (prototype: object) => (object: object) =>
@@ -57,7 +57,7 @@ export default (() => {
 
   const freeze = <T>(object: T) => Object.freeze(object)
 
-  const deepFreeze = <T extends CloneType>(elementToFreeze: T): T => {
+  const deepFreeze = <T extends CloneType>(elementToFreeze: T): Readonly<T> => {
     switch (typeCheck(elementToFreeze)) {
       case 'object':
         return pipe(
@@ -73,13 +73,13 @@ export default (() => {
       case 'array':
         return freeze((elementToFreeze as any).map(deepFreeze))
       case 'set':
-        return immuterSet(elementToFreeze as any) as T
+        return immuterSet(elementToFreeze as any) as Readonly<T>
       case 'map': {
         const freezedMap = new Map()
         ;(elementToFreeze as any[]).forEach((value: unknown, key: unknown) => {
           freezedMap.set(key, deepFreeze(value as any))
         })
-        return immuterMap(freezedMap)
+        return immuterMap(freezedMap) as Readonly<T>
       }
       default:
         return elementToFreeze
@@ -96,15 +96,17 @@ export default (() => {
     K extends ProducerType<T> | undefined,
   > = K extends ProducerType<T> ? T & { [key: string]: any } : T
 
-  function produce<T extends CloneType>(baseState: BaseStateType<T>): T
+  function produce<T extends CloneType>(
+    baseState: BaseStateType<T>,
+  ): Readonly<T>
   function produce<T extends CloneType>(
     baseState: BaseStateType<T>,
     producer: ProducerType<T>,
-  ): ReturnProduce<T, typeof producer>
+  ): ReturnProduce<Readonly<T>, typeof producer>
   function produce<T extends CloneType>(
     baseState: BaseStateType<T>,
     producer?: ProducerType<T>,
-  ): ReturnProduce<T, typeof producer> {
+  ): ReturnProduce<Readonly<T>, typeof producer> {
     const clonedBaseState = deepClone(baseState)
 
     if (isUndefined(producer)) {

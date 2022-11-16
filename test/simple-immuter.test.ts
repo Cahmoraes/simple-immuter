@@ -32,7 +32,7 @@ describe('Simple Immuter Test Suite', () => {
         name: 'cahmoraes',
       }
 
-      const result = si.produce(user_1)
+      const result: any = si.produce(user_1)
 
       expect(() => (result.name = 'thomas')).toThrowError(
         "Cannot assign to read only property 'name' of object '#<Object>'",
@@ -179,6 +179,30 @@ describe('Simple Immuter Test Suite', () => {
 
       expect(Object.isFrozen(result)).toBeTruthy()
       expect(result).not.toBe(user)
+    })
+
+    it('should return a deep freeze clone from Map', () => {
+      const map = new Map([
+        ['name', 'caique'],
+        ['age', '29'],
+      ])
+
+      const result = si.deepFreeze(map)
+
+      expect(Object.isFrozen(result)).toBeTruthy()
+      expect(result.get('name')).toBe('caique')
+    })
+
+    it('should return a deep freeze clone from Set', () => {
+      const set = new Set(['name', 'caique'])
+
+      const result = si.deepFreeze(set)
+      const invalido = 'invalido'
+
+      result.add(invalido)
+
+      expect(result.has(invalido)).toBeFalsy()
+      expect(Object.isFrozen(result)).toBeTruthy()
     })
   })
 
