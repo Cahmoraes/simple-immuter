@@ -25,7 +25,10 @@
 </p>
 
 <h3>produce</h3>
-<pre>produce(baseState: Object | Array | Map | Set | [, producer: (draftState) => (void | draftState) ]): nextState</pre>
+
+```js
+produce(baseState: Object | Array | Map | Set | [, producer: (draftState) => (void | draftState) ]): nextState
+```
 
 <strong>producer</strong>: (opcional) Se for passado uma função, o parâmetro draftState será um clone de baseState, que pode ser alterado dentro da função producer. O nextState será o resultado de draftState em cima do currentState.
 
@@ -76,6 +79,10 @@ console.log(Object.isFrozen(clone))
 ## Gerando clone profundo e mutável com deepClone.
 
 ```js
+deepClone(baseState: Object | Array | Map | Set): nextState
+```
+
+```js
 import { si } from '@cahmoraes93/simple-immuter'
 
 const user = {
@@ -98,6 +105,10 @@ console.log(Object.isFrozen(clone))
 ## Gerando clone profundo e imutável com deepFreeze.
 
 ```js
+deepFreeze(baseState: Object | Array | Map | Set): nextState
+```
+
+```js
 import { si } from '@cahmoraes93/simple-immuter'
 
 const user = {
@@ -106,7 +117,7 @@ const user = {
   books: ['Sapiens', 'Rápido e Devagar'],
 }
 
-const clone = si.deepClone(user)
+const clone = si.deepFreeze(user)
 clone.name = 'thomas'
 clone.books.push('Arquitetura Limpa')
 
