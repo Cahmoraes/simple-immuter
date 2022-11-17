@@ -88,14 +88,13 @@ export default (() => {
 
   type CloneType = object | Map<unknown, unknown> | Set<unknown> | unknown[]
   type BaseStateType<T> = DraftState<T>
-  type CombinedType = Record<string, unknown>
-  type DraftState<T> = T & { [key: string]: any }
-  type DraftResult<T> = DraftState<T> | void
+  type DraftState<T> = T
+  type DraftResult<T> = Readonly<DraftState<T>> | void
   type ProducerType<T> = (draftState: DraftState<T>) => DraftResult<T>
   type ReturnProduce<
     T,
     K extends ProducerType<T> | undefined,
-  > = K extends ProducerType<T> ? T & CombinedType : Readonly<T>
+  > = K extends ProducerType<T> ? T : Readonly<T>
 
   function produce<T extends CloneType>(
     baseState: BaseStateType<T>,
