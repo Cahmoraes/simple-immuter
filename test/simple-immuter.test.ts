@@ -235,6 +235,67 @@ describe('Simple Immuter Test Suite', () => {
       )
     })
 
+    it('should clone an object with setter and getter', () => {
+      const proto = { randomProperty: 'anAnyProto' }
+      const original = Object.create(proto, {
+        prop: {
+          get() {
+            return this._prop
+          },
+          set(newProp: string) {
+            this._prop = newProp
+          },
+        },
+      })
+
+      const cloned = si.cloneDeep(original)
+
+      expect(Object.getPrototypeOf(original)).toBe(
+        Object.getPrototypeOf(cloned),
+      )
+
+      expect(Object.getOwnPropertyDescriptors(original)).toStrictEqual(
+        Object.getOwnPropertyDescriptors(cloned),
+      )
+    })
+
+    it('should clone an object with complex descriptor', () => {
+      const proto = { randomProperty: 'anAnyProto' }
+      const original = Object.create(proto, {
+        prop: {
+          value: 'any value',
+          configurable: false,
+          writable: true,
+          enumerable: false,
+        },
+      })
+
+      const cloned = si.cloneDeep(original)
+
+      expect(Object.getPrototypeOf(original)).toBe(
+        Object.getPrototypeOf(cloned),
+      )
+
+      const originalDescriptors = Object.getOwnPropertyDescriptors(original)
+      const cloneDescriptors = Object.getOwnPropertyDescriptors(cloned)
+
+      expect(cloneDescriptors).toStrictEqual(originalDescriptors)
+
+      expect(cloneDescriptors.prop.enumerable).toBe(
+        originalDescriptors.prop.enumerable,
+      )
+
+      expect(cloneDescriptors.prop.writable).toBe(
+        originalDescriptors.prop.writable,
+      )
+
+      expect(cloneDescriptors.prop.configurable).toBe(
+        originalDescriptors.prop.configurable,
+      )
+
+      expect(cloneDescriptors.prop.value).toBe(originalDescriptors.prop.value)
+    })
+
     it('should clone symbols', () => {
       const nameSymbol = Symbol('name')
       const obj = {
