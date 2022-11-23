@@ -294,6 +294,8 @@ describe('Simple Immuter Test Suite', () => {
       )
 
       expect(cloneDescriptors.prop.value).toBe(originalDescriptors.prop.value)
+
+      expect(cloned).not.toBe(original)
     })
 
     it('should clone symbols', () => {
