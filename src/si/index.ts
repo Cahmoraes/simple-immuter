@@ -8,17 +8,6 @@ export default (() => {
   const die = (errorNumber: number) => () =>
     console.log(errors.get(errorNumber))
 
-  const pipe =
-    (...fns: any[]) =>
-    (value: any) =>
-      fns.reduce((acc, fn) => fn(acc), value)
-
-  const createObjectFromEntries = (entries: any[]) =>
-    Object.fromEntries(entries)
-
-  const getKeysAndSymbolsFromObject = (object: object) =>
-    Reflect.ownKeys(object)
-
   const immuterSet = (setToImmuter: any): Readonly<Set<unknown>> => {
     setToImmuter.add = die(1)
     setToImmuter.delete = die(1)
@@ -32,11 +21,6 @@ export default (() => {
     mapToImmuter.clear = die(1)
     return freeze(mapToImmuter)
   }
-
-  const setPrototypeOf = (prototype: object) => (object: object) =>
-    Object.setPrototypeOf(object, prototype)
-
-  const getPrototypeOf = <T>(object: T) => Object.getPrototypeOf(object)
 
   const typeCheck = (elementToCheck: unknown) => {
     const stringType = Reflect.apply(
@@ -60,16 +44,7 @@ export default (() => {
   const freezeDeep = <T extends CloneType>(elementToFreeze: T): Readonly<T> => {
     switch (typeCheck(elementToFreeze)) {
       case 'object':
-        return pipe(
-          createObjectFromEntries,
-          setPrototypeOf(getPrototypeOf(elementToFreeze)),
-          freeze,
-        )(
-          getKeysAndSymbolsFromObject(elementToFreeze).map((key) => [
-            key,
-            freezeDeep((elementToFreeze as any)[key]),
-          ]),
-        )
+        return freeze(createClone(elementToFreeze, freezeDeep))
       case 'array':
         return freeze((elementToFreeze as any).map(freezeDeep))
       case 'set':
@@ -88,13 +63,14 @@ export default (() => {
 
   type CloneType = object | Map<unknown, unknown> | Set<unknown> | unknown[]
   type BaseStateType<T> = DraftState<T>
-  type DraftState<T> = T
-  type DraftResult<T> = Readonly<DraftState<T>> | void
+  type CombinedType = Record<string, unknown>
+  type DraftState<T> = T & { [key: string]: any }
+  type DraftResult<T> = DraftState<T> | void
   type ProducerType<T> = (draftState: DraftState<T>) => DraftResult<T>
   type ReturnProduce<
     T,
     K extends ProducerType<T> | undefined,
-  > = K extends ProducerType<T> ? T : Readonly<T>
+  > = K extends ProducerType<T> ? T & CombinedType : Readonly<T>
 
   function produce<T extends CloneType>(
     baseState: BaseStateType<T>,
@@ -121,22 +97,29 @@ export default (() => {
     throw new Error(errors.get(3))
   }
 
+  const createClone = (
+    anObject: object,
+    strategy: (...args: any) => unknown,
+  ) => {
+    const descriptors = Object.getOwnPropertyDescriptors(anObject)
+    const cloneObj = Object.create(Object.getPrototypeOf(anObject), descriptors)
+
+    for (const key of Object.keys(descriptors)) {
+      if (Object.hasOwn(descriptors[key], 'value')) {
+        cloneObj[key] = strategy(Reflect.get(anObject, key))
+      }
+    }
+
+    return cloneObj
+  }
+
   const cloneArray = <T extends any[]>(elementToClone: T) =>
     elementToClone.map(cloneDeep)
 
-  const cloneObject = <T extends { [hey: string | symbol]: any }>(
+  const cloneObject = <T extends { [key: string | symbol]: any }>(
     elementToClone: T,
   ): T => {
-    const prototype = Object.getPrototypeOf(elementToClone)
-    return pipe(
-      createObjectFromEntries,
-      setPrototypeOf(prototype),
-    )(
-      getKeysAndSymbolsFromObject(elementToClone).map((key) => [
-        key,
-        cloneDeep(elementToClone[key]),
-      ]),
-    )
+    return createClone(elementToClone, cloneDeep)
   }
 
   const cloneMap = <K, V extends CloneType>(elementToClone: Map<K, V>) => {

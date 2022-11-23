@@ -134,7 +134,8 @@ describe('Simple Immuter Test Suite', () => {
           street: 'Baker',
           city: 'London',
         },
-        hobbies: new Set(['books', 'sports']),
+        hobbiesSet: new Set(['books', 'sports']),
+        hooks: ['book', 'car'],
       }
 
       const result = si.produce(user, (draftState) => {
@@ -142,17 +143,17 @@ describe('Simple Immuter Test Suite', () => {
         draftState.age = 20
         draftState.address.city = 'Constantinopla'
         draftState.address.street = 'Rua X'
-        draftState.hobbies.add('games')
-        draftState.hobbies.delete('sports')
+        draftState.hobbiesSet.add('games')
+        draftState.hobbiesSet.delete('sports')
       })
 
       expect(user).toHaveProperty('age', 29)
-      expect(user.hobbies.has('sports')).toBeTruthy()
+      expect(user.hobbiesSet.has('sports')).toBeTruthy()
 
       expect(result).toHaveProperty('age', 20)
       expect(result).toHaveProperty('name', 'thomas')
-      expect(result.hobbies.has('games')).toBeTruthy()
-      expect(result.hobbies.has('sports')).not.toBeTruthy()
+      expect(result.hobbiesSet.has('games')).toBeTruthy()
+      expect(result.hobbiesSet.has('sports')).not.toBeTruthy()
     })
 
     it('should throw an Erro when draftState is not a function', () => {
@@ -219,5 +220,21 @@ describe('Simple Immuter Test Suite', () => {
 
       expect(user).toHaveProperty('name', 'cahmoraes')
     })
+
+    // it.only('should clone getters and setters properties', () => {
+    //   const obj = {
+    //     get name() {
+    //       return 'Caique'
+    //     },
+    //   }
+
+    //   const cloned = si.cloneDeep(obj)
+
+    //   console.log(Object.getOwnPropertyDescriptors(obj))
+    //   console.log(Object.getOwnPropertyDescriptors(cloned))
+
+    //   // expect(obj.name).toBeInstanceOf(Function)
+    //   // expect(cloned.name).toBeInstanceOf(Function)
+    // })
   })
 })
