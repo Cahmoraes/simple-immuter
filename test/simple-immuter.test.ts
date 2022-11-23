@@ -235,7 +235,7 @@ describe('Simple Immuter Test Suite', () => {
       )
     })
 
-    it.only('should clone symbols', () => {
+    it('should clone symbols', () => {
       const nameSymbol = Symbol('name')
       const obj = {
         get name() {
