@@ -221,20 +221,18 @@ describe('Simple Immuter Test Suite', () => {
       expect(user).toHaveProperty('name', 'cahmoraes')
     })
 
-    // it.only('should clone getters and setters properties', () => {
-    //   const obj = {
-    //     get name() {
-    //       return 'Caique'
-    //     },
-    //   }
+    it('should clone getters and setters properties', () => {
+      const obj = {
+        get name() {
+          return 'Caique'
+        },
+      }
 
-    //   const cloned = si.cloneDeep(obj)
+      const cloned = si.cloneDeep(obj)
 
-    //   console.log(Object.getOwnPropertyDescriptors(obj))
-    //   console.log(Object.getOwnPropertyDescriptors(cloned))
-
-    //   // expect(obj.name).toBeInstanceOf(Function)
-    //   // expect(cloned.name).toBeInstanceOf(Function)
-    // })
+      expect(Object.getOwnPropertyDescriptor(obj, 'name')).toStrictEqual(
+        Object.getOwnPropertyDescriptor(cloned, 'name'),
+      )
+    })
   })
 })

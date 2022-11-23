@@ -104,9 +104,9 @@ export default (() => {
     const descriptors = Object.getOwnPropertyDescriptors(anObject)
     const cloneObj = Object.create(Object.getPrototypeOf(anObject), descriptors)
 
-    for (const key of Object.keys(descriptors)) {
-      if (Object.hasOwn(descriptors[key], 'value')) {
-        cloneObj[key] = strategy(Reflect.get(anObject, key))
+    for (const descriptor of Reflect.ownKeys(descriptors)) {
+      if (Reflect.has(descriptors[String(descriptor)], 'value')) {
+        cloneObj[descriptor] = strategy(Reflect.get(anObject, descriptor))
       }
     }
 
