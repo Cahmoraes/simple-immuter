@@ -234,5 +234,19 @@ describe('Simple Immuter Test Suite', () => {
         Object.getOwnPropertyDescriptor(cloned, 'name'),
       )
     })
+
+    it.only('should clone symbols', () => {
+      const nameSymbol = Symbol('name')
+      const obj = {
+        get name() {
+          return 'Caique'
+        },
+        [nameSymbol]: 'nameSymbol',
+      }
+
+      const cloned = si.cloneDeep(obj)
+
+      expect(obj).toStrictEqual(cloned)
+    })
   })
 })

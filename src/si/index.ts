@@ -105,12 +105,18 @@ export default (() => {
     const cloneObj = Object.create(Object.getPrototypeOf(anObject), descriptors)
 
     for (const descriptor of Reflect.ownKeys(descriptors)) {
-      if (Reflect.has(descriptors[String(descriptor)], 'value')) {
-        cloneObj[descriptor] = strategy(Reflect.get(anObject, descriptor))
-      }
+      if (!isEligible(descriptor)) continue
+      cloneObj[descriptor] = strategy(Reflect.get(anObject, descriptor))
     }
 
     return cloneObj
+
+    function isEligible(descriptor: string | symbol) {
+      return (
+        descriptors[String(descriptor)] &&
+        Reflect.has(descriptors[String(descriptor)], 'value')
+      )
+    }
   }
 
   const cloneArray = <T extends any[]>(elementToClone: T) =>
