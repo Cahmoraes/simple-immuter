@@ -1,6 +1,6 @@
 {
   "name": "@cahmoraes93/simple-immuter",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "main": "./dist/index.js",
   "author": "Cahmoraes <ike.moraes93@gmail.com>",
   "keywords": [
