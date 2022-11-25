@@ -311,5 +311,15 @@ describe('Simple Immuter Test Suite', () => {
 
       expect(obj).toStrictEqual(cloned)
     })
+
+    it('should clone an object Date', () => {
+      const date = new Date()
+
+      const cloneDate = si.cloneDeep(date)
+      expect(cloneDate.getFullYear() === date.getFullYear()).toBeTruthy()
+      cloneDate.setFullYear(1993)
+      expect(cloneDate.getFullYear() === date.getFullYear()).toBeFalsy()
+      expect(cloneDate.getFullYear()).not.toBe(date.getFullYear())
+    })
   })
 })

@@ -61,7 +61,12 @@ export default (() => {
     }
   }
 
-  type CloneType = object | Map<unknown, unknown> | Set<unknown> | unknown[]
+  type CloneType =
+    | object
+    | Map<unknown, unknown>
+    | Set<unknown>
+    | unknown[]
+    | Date
   type BaseStateType<T> = DraftState<T>
   type CombinedType = Record<string, unknown>
   type DraftState<T> = T & { [key: string]: any }
@@ -144,18 +149,34 @@ export default (() => {
     return clonedSet
   }
 
-  const cloneDeep = <T extends CloneType>(element: T): T => {
-    switch (typeCheck(element)) {
+  const cloneDate = (aDate: Date): Date => new Date(aDate)
+
+  function assertTypeOf<T>(
+    anElement: unknown,
+    aType: string,
+  ): asserts anElement is T {
+    if (typeCheck(anElement) !== aType)
+      throw new Error(`element is not type of [${aType}]`)
+  }
+
+  const cloneDeep = <T extends CloneType>(anElement: T): T => {
+    switch (typeCheck(anElement)) {
       case 'object':
-        return cloneObject(element)
+        return cloneObject(anElement)
       case 'array':
-        return cloneArray(element as any[]) as T
+        assertTypeOf<Array<unknown>>(anElement, 'array')
+        return cloneArray(anElement) as T
       case 'map':
-        return cloneMap(element as Map<any, any>) as T
+        assertTypeOf<Map<unknown, CloneType>>(anElement, 'map')
+        return cloneMap(anElement) as T
       case 'set':
-        return cloneSet(element as Set<any>) as T
+        assertTypeOf<Set<CloneType>>(anElement, 'set')
+        return cloneSet(anElement) as T
+      case 'date':
+        assertTypeOf<Date>(anElement, 'date')
+        return cloneDate(anElement) as T
       default:
-        return element
+        return anElement
     }
   }
 
