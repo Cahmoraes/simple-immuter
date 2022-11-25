@@ -45,6 +45,8 @@ export default (() => {
     switch (typeCheck(elementToFreeze)) {
       case 'object':
         return freeze(createClone(elementToFreeze, freezeDeep))
+      case 'date':
+        return freeze(cloneDate(elementToFreeze as any)) as Readonly<T>
       case 'array':
         return freeze((elementToFreeze as any).map(freezeDeep))
       case 'set':
@@ -133,6 +135,8 @@ export default (() => {
     return createClone(elementToClone, cloneDeep)
   }
 
+  const cloneDate = (aDate: Date): Date => new Date(aDate)
+
   const cloneMap = <K, V extends CloneType>(elementToClone: Map<K, V>) => {
     const clonedMap = new Map()
     elementToClone.forEach((value, key) => {
@@ -148,8 +152,6 @@ export default (() => {
     elementToClone.forEach((value) => clonedSet.add(cloneDeep(value)))
     return clonedSet
   }
-
-  const cloneDate = (aDate: Date): Date => new Date(aDate)
 
   function assertTypeOf<T>(
     anElement: unknown,

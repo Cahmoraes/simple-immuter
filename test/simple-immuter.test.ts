@@ -126,6 +126,18 @@ describe('Simple Immuter Test Suite', () => {
       expect(result).toHaveProperty('name', 'thomas')
     })
 
+    it('should return a clone of object Date with properties changed', () => {
+      const date = new Date()
+
+      const cloneDate = si.produce(date, (draftState) => {
+        draftState.setFullYear(1993)
+      })
+
+      expect(Object.isFrozen(cloneDate)).toBeTruthy()
+      expect(cloneDate.getFullYear() === date.getFullYear()).toBeFalsy()
+      expect(cloneDate.getFullYear()).not.toBe(date.getFullYear())
+    })
+
     it('should return a clone object with nested properties changed', () => {
       const user = {
         name: 'caique',
@@ -316,8 +328,11 @@ describe('Simple Immuter Test Suite', () => {
       const date = new Date()
 
       const cloneDate = si.cloneDeep(date)
+
       expect(cloneDate.getFullYear() === date.getFullYear()).toBeTruthy()
+
       cloneDate.setFullYear(1993)
+
       expect(cloneDate.getFullYear() === date.getFullYear()).toBeFalsy()
       expect(cloneDate.getFullYear()).not.toBe(date.getFullYear())
     })
