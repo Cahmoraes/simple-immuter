@@ -112,6 +112,25 @@ describe('Simple Immuter Test Suite', () => {
       expect(Object.getPrototypeOf(clone)).toBeInstanceOf(User)
       expect(clone).toBeInstanceOf(Player)
     })
+
+    it('should replace baseState with initialState when producer function return a value', () => {
+      const initialState = {
+        name: 'cahmoraes',
+        age: 28,
+      }
+
+      const expandedResult = {
+        ...initialState,
+        name: 'thomasmoraes',
+      }
+
+      const clone = si.produce(expandedResult, () => initialState)
+
+      console.log('initialState', initialState)
+      console.log('clone', clone)
+
+      expect(clone).toStrictEqual(initialState)
+    })
   })
 
   describe('Test suit about draftState', () => {

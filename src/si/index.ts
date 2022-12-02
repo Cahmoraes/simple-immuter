@@ -70,14 +70,13 @@ export default (() => {
     | unknown[]
     | Date
   type BaseStateType<T> = DraftState<T>
-  type CombinedType = Record<string, unknown>
   type DraftState<T> = T & { [key: string]: any }
   type DraftResult<T> = DraftState<T> | void
   type ProducerType<T> = (draftState: DraftState<T>) => DraftResult<T>
   type ReturnProduce<
     T,
     K extends ProducerType<T> | undefined,
-  > = K extends ProducerType<T> ? T & CombinedType : Readonly<T>
+  > = K extends ProducerType<T> ? T : Readonly<T>
 
   function produce<T extends CloneType>(
     baseState: BaseStateType<T>,
@@ -97,8 +96,9 @@ export default (() => {
     }
 
     if (isFunction(producer)) {
-      producer(clonedBaseState)
-      return freezeDeep(clonedBaseState)
+      const producedResult = producer(clonedBaseState)
+      if (!producedResult) return freezeDeep(clonedBaseState)
+      return freezeDeep(producedResult)
     }
 
     throw new Error(errors.get(3))
