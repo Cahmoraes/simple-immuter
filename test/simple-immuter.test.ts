@@ -126,23 +126,94 @@ describe('Simple Immuter Test Suite', () => {
 
       const clone = si.produce(expandedResult, () => initialState)
 
-      console.log('initialState', initialState)
-      console.log('clone', clone)
+      expect(clone).toStrictEqual(initialState)
+    })
+
+    it('should replace baseState with initialState when producer function return a value AND not freeze result', () => {
+      const initialState = {
+        name: 'cahmoraes',
+        age: 28,
+        address: {
+          city: 'London',
+          street: 'Baker Street',
+        },
+      }
+
+      const expandedResult = {
+        ...initialState,
+        name: 'thomasmoraes',
+      }
+
+      const clone = si.produce(expandedResult, () => initialState, {
+        freeze: false,
+      })
 
       expect(clone).toStrictEqual(initialState)
+      expect(Object.isFrozen(clone)).toBeFalsy()
+      expect(Object.isFrozen(clone.address)).toBeFalsy()
     })
   })
 
   describe('Test suit about draftState', () => {
     it('should return a clone object with properties changed', () => {
-      const user = { name: 'caique' }
+      const user = {
+        name: 'caique',
+        address: { street: 'Baker', city: 'London' },
+      }
 
       const result = si.produce(user, (draftState) => {
         draftState.name = 'thomas'
+        draftState.address.city = 'Paris'
       })
 
       expect(user).not.toHaveProperty('age')
       expect(result).toHaveProperty('name', 'thomas')
+      expect(Object.isFrozen(result)).toBeTruthy()
+      expect(Object.isFrozen(result.address)).toBeTruthy()
+    })
+
+    it('should return a clone object with properties changed AND config producer with property freeze equals true', () => {
+      const user = {
+        name: 'caique',
+        address: { street: 'Baker', city: 'London' },
+      }
+
+      const result = si.produce(
+        user,
+        (draftState) => {
+          draftState.name = 'thomas'
+          draftState.address.city = 'Paris'
+        },
+        {
+          freeze: true,
+        },
+      )
+
+      expect(user).not.toHaveProperty('age')
+      expect(result).toHaveProperty('name', 'thomas')
+      expect(Object.isFrozen(result)).toBeTruthy()
+      expect(Object.isFrozen(result.address)).toBeTruthy()
+    })
+
+    it('should return a clone object with properties changed and not frozen', () => {
+      const user = {
+        name: 'caique',
+        address: { street: 'Baker', city: 'London' },
+      }
+
+      const result = si.produce(
+        user,
+        (draftState) => {
+          draftState.name = 'thomas'
+          draftState.address.city = 'Paris'
+        },
+        { freeze: false },
+      )
+
+      expect(user).not.toHaveProperty('age')
+      expect(result).toHaveProperty('name', 'thomas')
+      expect(Object.isFrozen(result)).toBeFalsy()
+      expect(Object.isFrozen(result.address)).toBeFalsy()
     })
 
     it('should return a clone of object Date with properties changed', () => {

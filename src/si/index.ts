@@ -70,7 +70,7 @@ export default (() => {
     | unknown[]
     | Date
   type BaseStateType<T> = DraftState<T>
-  type DraftState<T> = T & { [key: string]: any }
+  type DraftState<T> = T
   type DraftResult<T> = DraftState<T> | void
   type ProducerType<T> = (draftState: DraftState<T>) => DraftResult<T>
   type ReturnProduce<
@@ -78,9 +78,18 @@ export default (() => {
     K extends ProducerType<T> | undefined,
   > = K extends ProducerType<T> ? T : Readonly<T>
 
+  type ProducerConfig = {
+    freeze: boolean
+  }
+
   function produce<T extends CloneType>(
     baseState: BaseStateType<T>,
   ): Readonly<T>
+  function produce<T extends CloneType>(
+    baseState: BaseStateType<T>,
+    producer: ProducerType<T>,
+    config: ProducerConfig,
+  ): ReturnProduce<Readonly<T>, typeof producer>
   function produce<T extends CloneType>(
     baseState: BaseStateType<T>,
     producer: ProducerType<T>,
@@ -88,6 +97,7 @@ export default (() => {
   function produce<T extends CloneType>(
     baseState: BaseStateType<T>,
     producer?: ProducerType<T>,
+    config: ProducerConfig = { freeze: true },
   ): ReturnProduce<Readonly<T>, typeof producer> {
     const clonedBaseState = cloneDeep(baseState)
 
@@ -96,12 +106,19 @@ export default (() => {
     }
 
     if (isFunction(producer)) {
-      const producedResult = producer(clonedBaseState)
-      if (!producedResult) return freezeDeep(clonedBaseState)
-      return freezeDeep(producedResult)
+      const result = producer(clonedBaseState)
+
+      if (isValidToFreeze(result)) return freezeDeep(clonedBaseState)
+      if (isUndefined(result)) return clonedBaseState
+      if (config.freeze) return freezeDeep(result)
+      return result
     }
 
     throw new Error(errors.get(3))
+
+    function isValidToFreeze(producedResult: unknown) {
+      return isUndefined(producedResult) && config.freeze
+    }
   }
 
   const createClone = (
