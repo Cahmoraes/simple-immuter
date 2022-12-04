@@ -57,7 +57,7 @@ describe('Simple Immuter Test Suite', () => {
       expect(result).toBeInstanceOf(Set)
     })
 
-    it('Should return a new Object', () => {
+    it('Should return a cloned Object', () => {
       const baseState = {
         name: 'caique',
         address: {
@@ -151,6 +151,43 @@ describe('Simple Immuter Test Suite', () => {
       expect(clone).toStrictEqual(initialState)
       expect(Object.isFrozen(clone)).toBeFalsy()
       expect(Object.isFrozen(clone.address)).toBeFalsy()
+    })
+
+    it('Should return a deep dive cloned Object and NOT freeze nextState', () => {
+      const baseState = {
+        name: 'caique',
+        address: {
+          street: 'Rua X',
+          number: 6,
+        },
+        phone: {
+          fixo: ['0000-0000', '1111-1111'],
+          mobile: ['9999-9999', 99998888],
+        },
+        hobbies: new Map([
+          ['video game', ['crash', 'carros', new Map([['map', 'test']])]],
+        ]),
+        brothers: new Set(['caique', 'thomas', 'isabella', 'igor']),
+        greeting() {
+          return this.name
+        },
+      }
+
+      const clone = si.produce(
+        baseState,
+        (draftState) => {
+          draftState.hobbies.set('new key', ['new value'])
+        },
+        { freeze: false },
+      )
+
+      expect(Object.isFrozen(clone.hobbies)).toBeFalsy()
+
+      const newMapKey = 'new key 1'
+      clone.hobbies.set(newMapKey, ['new value 2'])
+
+      expect(clone.hobbies.has(newMapKey)).toBeTruthy()
+      expect(clone).not.toStrictEqual(baseState)
     })
   })
 

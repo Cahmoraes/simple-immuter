@@ -28,10 +28,13 @@ Foi removido a compatibilidade da função produce, de receber Promises. Não ho
 <h3>produce</h3>
 
 ```js
-produce(baseState: Object | Array | Map | Set | [, producer: (draftState) => (void | draftState) ]): nextState
+produce(baseState: Object | Array | Map | Set | [, producer: (draftState) => (void | draftState) , producerConfig]): nextState
 ```
 
 <strong>producer</strong>: (opcional) Se for passado uma função, o parâmetro draftState será um clone de baseState, que pode ser alterado dentro da função producer. O nextState será o resultado de draftState em cima do currentState.
+A função producer pode retornar um valor, este valor é o próprio draftState. Geralmente este valor será retornado em casos de resetar completamente o draftState para um estado inicial.
+
+<strong>producerConfig<strong>: (opcional) Objeto de configuração da função producer. Possui propriedade **freeze** que recebe um booleano. Se for true, fará um deepFreeze no resultado final. Se for false, não realizará o deepFreeze. Por padrão é **true**.
 
 ## Gerando um clone profundo e imutável com produce
 
@@ -72,6 +75,33 @@ const clone = si.produce(user, (draftState) => {
 
 console.log(clone)
 //=> {  name: 'thomas',  age: 20,  books: ['Sapiens', 'Rápido e Devagar', Arquitetura Limpa] }
+
+console.log(Object.isFrozen(clone))
+//=> true
+```
+
+## Resetando os valores de draftState
+
+```js
+import { si } from '@cahmoraes93/simple-immuter'
+
+const initialState = {
+  name: 'caique',
+  age: 28,
+}
+
+const user = {
+  ...user,
+  name: 'thomas',
+}
+
+const clone = si.produce(user, (draftState) => {
+  draftState = initialState
+  return draftState
+})
+
+console.log(clone)
+//=> {  name: 'caique',  age: 28 }
 
 console.log(Object.isFrozen(clone))
 //=> true

@@ -76,7 +76,7 @@ export default (() => {
   type ReturnProduce<
     T,
     K extends ProducerType<T> | undefined,
-  > = K extends ProducerType<T> ? T : Readonly<T>
+  > = K extends ProducerType<T> ? Readonly<T> : never
 
   type ProducerConfig = {
     freeze: boolean
