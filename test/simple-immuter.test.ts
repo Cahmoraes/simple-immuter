@@ -81,6 +81,61 @@ describe('Simple Immuter Test Suite', () => {
       expect(clone).toStrictEqual(baseState)
     })
 
+    it('should clone an Array', () => {
+      const baseArray = ['hello', 'world']
+
+      const nextState = si.produce(baseArray, (draftState) => {
+        draftState.push('new key')
+      })
+
+      expect(nextState).toBeInstanceOf(Array)
+      expect(nextState).toHaveLength(3)
+      expect(nextState).not.toEqual(baseArray)
+      expect(Object.isFrozen(nextState)).toBeTruthy()
+      expect(() => ((nextState[0] as any) = 'invalid')).toThrow()
+    })
+
+    it('should clone an Array with objects', () => {
+      const baseArray = [
+        {
+          _name: 'Caique',
+          get name() {
+            return this._name
+          },
+          set name(newName: string) {
+            this._name = newName
+          },
+        },
+        {
+          _name: 'Thomas',
+          get name() {
+            return this._name
+          },
+          set name(newName: string) {
+            this._name = newName
+          },
+        },
+      ]
+
+      const nextState = si.produce(baseArray, (draftState) => {
+        draftState[0].name = 'Igor'
+        draftState[1].name = 'Isabella'
+      })
+
+      expect(Object.isFrozen(nextState[0])).toBeTruthy()
+      expect(Object.isFrozen(nextState[1])).toBeTruthy()
+
+      expect(baseArray[0]).toHaveProperty('name', 'Caique')
+      expect(nextState[0]).toHaveProperty('name', 'Igor')
+
+      expect(baseArray[1]).toHaveProperty('name', 'Thomas')
+      expect(nextState[1]).toHaveProperty('name', 'Isabella')
+
+      expect(Object.getOwnPropertyNames(nextState)).toEqual(
+        Object.getOwnPropertyNames(baseArray),
+      )
+    })
+
     it('should preserve prototype inheritance', () => {
       class User {
         public name: string
